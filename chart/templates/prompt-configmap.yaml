@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+data:
+  {{- .Values | toYaml | nindent 2 }}
+kind: ConfigMap
+metadata:
+  name: system-prompt
