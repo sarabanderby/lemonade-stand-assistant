@@ -32,7 +32,9 @@ TODO: an arcade will be added
 
 ### Minimum hardware requirements
 
-This demo is designed to run an LLM and guardrail models using GPU acceleration. The following hardware resources are required:
+This demo can be configured to run with different hardware setups depending on your available resources. The detectors can run on either GPU or CPU, and can be selectively enabled or disabled.
+
+#### Default Configuration (All Detectors with GPU)
 
 **Llama 3.2 3B Instruct (Main LLM):**
 - CPU: 1 vCPU (request) / 4 vCPU (limit)
@@ -42,22 +44,29 @@ This demo is designed to run an LLM and guardrail models using GPU acceleration.
 **IBM HAP Detector (Granite Guardian HAP 125M):**
 - CPU: 1 vCPU (request) / 2 vCPU (limit)
 - Memory: 4 GiB (request) / 8 GiB (limit)
-- GPU: 1 NVIDIA GPU
+- GPU: 1 NVIDIA GPU (optional - can run on CPU)
 
 **Prompt Injection Detector (DeBERTa v3 Base):**
 - CPU: 1 vCPU (request) / 2 vCPU (limit)
 - Memory: 4 GiB (request) / 8 GiB (limit)
-- GPU: 1 NVIDIA GPU
+- GPU: 1 NVIDIA GPU (optional - can run on CPU)
 
 **Language Detector (XLM-RoBERTa Base):**
 - CPU: 1 vCPU (request) / 1 vCPU (limit)
 - Memory: 6 GiB (request) / 12 GiB (limit)
-- GPU: 1 NVIDIA GPU
+- GPU: 1 NVIDIA GPU (optional - can run on CPU)
 
-**Total Resource Requirements:**
+**Total Resource Requirements (Default - All detectors with GPU):**
 - CPU: 4 vCPU (request) / 9 vCPU (limit)
 - Memory: 22 GiB (request) / 48 GiB (limit)
 - GPU: 4 NVIDIA GPUs (e.g., A10, A100, L40S, T4, or similar)
+
+**Minimum Configuration (LLM with GPU, detectors on CPU):**
+- CPU: 4 vCPU (request) / 9 vCPU (limit)
+- Memory: 22 GiB (request) / 48 GiB (limit)
+- GPU: 1 NVIDIA GPU (for LLM only)
+
+> **Note**: Detectors can be configured to use GPU or CPU. See the Configuration Options section below for details on customizing GPU usage for detectors based on your available resources.
 
 ### Minimum software requirements
 
@@ -96,6 +105,49 @@ oc new-project ${PROJECT}
 ```bash
 helm install lemonade-stand-assistant ./chart --namespace ${PROJECT}
 ```
+
+### Configuration Options
+
+The deployment can be customized through the `values.yaml` file. Each detector can be configured to run on GPU or CPU depending on your available resources.
+
+#### GPU Configuration
+
+Each detector supports the following configuration options:
+
+- `useGpu`: Enable GPU acceleration for the detector (default: `true`)
+- `resources`: CPU and memory resource requests and limits
+
+**Example: Run all detectors on CPU only (no GPUs required for detectors)**
+```bash
+helm install lemonade-stand-assistant ./chart --namespace ${PROJECT} \
+  --set detectors.hap.useGpu=false \
+  --set detectors.promptInjection.useGpu=false \
+  --set detectors.language.useGpu=false
+```
+
+**Example: Run only HAP detector with GPU, others on CPU**
+```bash
+helm install lemonade-stand-assistant ./chart --namespace ${PROJECT} \
+  --set detectors.hap.useGpu=true \
+  --set detectors.promptInjection.useGpu=false \
+  --set detectors.language.useGpu=false
+```
+
+**Example: Custom resource allocation for CPU-only HAP detector**
+```bash
+helm install lemonade-stand-assistant ./chart --namespace ${PROJECT} \
+  --set detectors.hap.useGpu=false \
+  --set detectors.hap.resources.requests.memory=2Gi \
+  --set detectors.hap.resources.limits.memory=4Gi
+```
+
+#### Available Detectors
+
+The following detectors are always deployed and can be configured in `values.yaml` under the `detectors` section:
+
+- **hap**: IBM HAP Detector (Granite Guardian) - Monitors for hate, abuse, and profanity
+- **promptInjection**: Prompt Injection Detector (DeBERTa v3) - Identifies prompt injection attempts
+- **language**: Language Detector (XLM-RoBERTa) - Validates language compliance (English only)
 
 ### Validating the deployment
 

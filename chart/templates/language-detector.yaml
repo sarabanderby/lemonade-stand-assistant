@@ -65,19 +65,25 @@ spec:
       name: ''
       resources:
         limits:
-          cpu: '1'
-          memory: 12Gi
+          cpu: {{ .Values.detectors.language.resources.limits.cpu }}
+          memory: {{ .Values.detectors.language.resources.limits.memory }}
+          {{- if .Values.detectors.language.useGpu }}
           nvidia.com/gpu: '1'
+          {{- end }}
         requests:
-          cpu: '1'
-          memory: 6Gi
+          cpu: {{ .Values.detectors.language.resources.requests.cpu }}
+          memory: {{ .Values.detectors.language.resources.requests.memory }}
+          {{- if .Values.detectors.language.useGpu }}
           nvidia.com/gpu: '1'
+          {{- end }}
       runtime: guardrails-detector-runtime-language-detector
       storage:
         key: minio-data-connection-detector-models
         path: xlm-roberta-base-language-detection
+    {{- if .Values.detectors.language.useGpu }}
     tolerations:
       - effect: NoSchedule
         key: nvidia.com/gpu
         operator: Equal
         value: Tesla-T4-SHARED
+    {{- end }}

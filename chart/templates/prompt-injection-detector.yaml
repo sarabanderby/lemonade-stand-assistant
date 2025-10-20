@@ -65,18 +65,24 @@ spec:
       name: ''
       resources:
         limits:
-          cpu: '2'
-          memory: 8Gi
+          cpu: {{ .Values.detectors.promptInjection.resources.limits.cpu }}
+          memory: {{ .Values.detectors.promptInjection.resources.limits.memory }}
+          {{- if .Values.detectors.promptInjection.useGpu }}
           nvidia.com/gpu: '1'
+          {{- end }}
         requests:
-          cpu: '1'
-          memory: 4Gi
+          cpu: {{ .Values.detectors.promptInjection.resources.requests.cpu }}
+          memory: {{ .Values.detectors.promptInjection.resources.requests.memory }}
+          {{- if .Values.detectors.promptInjection.useGpu }}
           nvidia.com/gpu: '1'
+          {{- end }}
       runtime: guardrails-detector-runtime-prompt-injection
       storage:
         key: minio-data-connection-detector-models
         path: deberta-v3-base-prompt-injection-v2
+    {{- if .Values.detectors.promptInjection.useGpu }}
     tolerations:
       - effect: NoSchedule
         key: nvidia.com/gpu
         operator: Exists
+    {{- end }}
