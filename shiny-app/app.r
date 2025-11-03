@@ -54,25 +54,31 @@ chat_vllm_message_or_warning <- function(base_url, model, api_key = "", system_p
       }
     }
 
-    # Check warnings FIRST - if there are warnings, show them instead of response
+    # Extract assistant message from choices (includes fallback messages)
+    choices <- parsed[["choices"]]
+    assistant_message <- NULL
+    if (is.list(choices) && length(choices) > 0) {
+      first_choice <- choices[[1]]
+      if (is.list(first_choice[["message"]]) && !is.null(first_choice[["message"]][["content"]])) {
+        assistant_message <- trimws(first_choice[["message"]][["content"]])
+      }
+    }
+
+    # Check if there are warnings
     warnings <- parsed[["warnings"]]
-    if (is.list(warnings) && length(warnings) > 0) {
+    has_warnings <- is.list(warnings) && length(warnings) > 0
+
+    # If there's an assistant message (including fallback), prefer it over generic warnings
+    if (!is.null(assistant_message) && nchar(assistant_message) > 0) {
+      messages <- c(messages, assistant_message)
+    } else if (has_warnings) {
+      # Only use warnings if no assistant message is available
       warning_texts <- sapply(warnings, function(w) {
         if (is.list(w) && !is.null(w[["message"]])) w[["message"]] else NULL
       })
       warning_texts <- warning_texts[!sapply(warning_texts, is.null)]
       if (length(warning_texts) > 0) {
         messages <- c(messages, paste(trimws(warning_texts), collapse = "\n"))
-        next  # Skip processing choices if warnings exist
-      }
-    }
-
-    # Only extract assistant message if no warnings
-    choices <- parsed[["choices"]]
-    if (is.list(choices) && length(choices) > 0) {
-      first_choice <- choices[[1]]
-      if (is.list(first_choice[["message"]]) && !is.null(first_choice[["message"]][["content"]])) {
-        messages <- c(messages, trimws(first_choice[["message"]][["content"]]))
       }
     }
   }
@@ -90,9 +96,9 @@ ui <- page_fillable(
   theme = redhat_theme,
   tags$div(
     style = "background-color:#EE0000; color:white; padding:10px; font-size:20px; font-weight:bold;",
-    "💬 Welcome to the digital Lemonade stand!"
+    "💬 Welcome to digital lemonade stand!"
   ),
-  chat_ui(id = "chat", messages = "**Hello!** I love lemons. Ask me about lemons."),
+  chat_ui(id = "chat", messages = "*Hello!* Let's speak about lemons."),
   fillable_mobile = TRUE,
   tags$footer(
     style = "text-align:center; padding:10px; font-size:12px; color:#4C4C4C;",

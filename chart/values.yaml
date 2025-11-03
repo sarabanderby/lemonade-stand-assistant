@@ -12,7 +12,7 @@ prompt: |
 detectors:
   # IBM HAP Detector (Granite Guardian)
   hap:
-    useGpu: true
+    useGpu: false
     resources:
       requests:
         cpu: '1'
@@ -23,22 +23,22 @@ detectors:
 
   # Prompt Injection Detector (DeBERTa v3)
   promptInjection:
-    useGpu: true
+    useGpu: false
     resources:
       requests:
-        cpu: '1'
-        memory: 4Gi
+        cpu: '4'
+        memory: 16Gi
       limits:
-        cpu: '2'
-        memory: 8Gi
+        cpu: '8'
+        memory: 24Gi
 
   # Language Detector (XLM-RoBERTa)
   language:
-    useGpu: true
+    useGpu: false
     resources:
       requests:
-        cpu: '1'
-        memory: 6Gi
+        cpu: '4'
+        memory: 16Gi
       limits:
-        cpu: '1'
-        memory: 12Gi
+        cpu: '8'
+        memory: 24Gi

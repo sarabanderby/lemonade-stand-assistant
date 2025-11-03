@@ -17,7 +17,7 @@ The Lemonade Stand Assistant provides an interactive customer service experience
 To ensure safe and appropriate interactions, the system employs multiple AI guardrails:
 - **IBM HAP Detector (Granite Guardian)**: Monitors conversations for hate, abuse, and profanity
 - **Prompt Injection Detector (DeBERTa v3)**: Identifies and blocks attempts to manipulate the AI assistant
-- **Language Detector (XLM-RoBERTa)**: Ensures responses are in English only
+- **Language Detector (XLM-RoBERTa)**: Ensures inputs and responses are in English only
 
 Furthemore, there is a:
 - **Regex Detector**: Blocks specific text without the use of models. In our case, its other fruits we consider "competitors".
@@ -28,45 +28,41 @@ The guardrails orchestrator coordinates these detectors to evaluate inputs and o
 
 TODO: an arcade will be added
 
+#### Monitoring Dashboard
+
+The solution includes a Grafana dashboard for monitoring guardrail detections in real-time:
+
+![Grafana Dashboard](./docs/images/grafana-dashboard.png)
+
+> **Optional**: To deploy the monitoring dashboard, see the [grafana](./grafana) folder for installation instructions. Note that deploying Grafana may require elevated cluster privileges to install the Grafana Operator.
+
 ## Requirements
 
 ### Minimum hardware requirements
 
-This demo can be configured to run with different hardware setups depending on your available resources. The detectors can run on either GPU or CPU, and can be selectively enabled or disabled.
-
-#### Default Configuration (All Detectors with GPU)
-
 **Llama 3.2 3B Instruct (Main LLM):**
 - CPU: 1 vCPU (request) / 4 vCPU (limit)
 - Memory: 8 GiB (request) / 20 GiB (limit)
-- GPU: 1 NVIDIA GPU
+- GPU: 1 NVIDIA GPU (e.g., A10, A100, L40S, T4, or similar)
 
 **IBM HAP Detector (Granite Guardian HAP 125M):**
 - CPU: 1 vCPU (request) / 2 vCPU (limit)
 - Memory: 4 GiB (request) / 8 GiB (limit)
-- GPU: 1 NVIDIA GPU (optional - can run on CPU)
 
 **Prompt Injection Detector (DeBERTa v3 Base):**
-- CPU: 1 vCPU (request) / 2 vCPU (limit)
-- Memory: 4 GiB (request) / 8 GiB (limit)
-- GPU: 1 NVIDIA GPU (optional - can run on CPU)
+- CPU: 4 vCPU (request) / 8 vCPU (limit)
+- Memory: 16 GiB (request) / 24 GiB (limit)
 
 **Language Detector (XLM-RoBERTa Base):**
-- CPU: 1 vCPU (request) / 1 vCPU (limit)
-- Memory: 6 GiB (request) / 12 GiB (limit)
-- GPU: 1 NVIDIA GPU (optional - can run on CPU)
+- CPU: 4 vCPU (request) / 8 vCPU (limit)
+- Memory: 16 GiB (request) / 24 GiB (limit)
 
-**Total Resource Requirements (Default - All detectors with GPU):**
-- CPU: 4 vCPU (request) / 9 vCPU (limit)
-- Memory: 22 GiB (request) / 48 GiB (limit)
-- GPU: 4 NVIDIA GPUs (e.g., A10, A100, L40S, T4, or similar)
-
-**Minimum Configuration (LLM with GPU, detectors on CPU):**
-- CPU: 4 vCPU (request) / 9 vCPU (limit)
-- Memory: 22 GiB (request) / 48 GiB (limit)
+**Total Resource Requirements:**
+- CPU: 10 vCPU (request) / 22 vCPU (limit)
+- Memory: 44 GiB (request) / 72 GiB (limit)
 - GPU: 1 NVIDIA GPU (for LLM only)
 
-> **Note**: Detectors can be configured to use GPU or CPU. See the Configuration Options section below for details on customizing GPU usage for detectors based on your available resources.
+> **Note**: The detector models are configured to run on CPU by default. If you have additional GPU resources available and want to improve detector performance, you can enable GPU acceleration for the detectors. See the [Configuration Options](#configuration-options) section for details on customizing GPU usage.
 
 ### Minimum software requirements
 
@@ -112,42 +108,33 @@ The deployment can be customized through the `values.yaml` file. Each detector c
 
 #### GPU Configuration
 
+By default, only the LLM uses GPU acceleration. All detector models run on CPU.
+
 Each detector supports the following configuration options:
 
-- `useGpu`: Enable GPU acceleration for the detector (default: `true`)
+- `useGpu`: Enable GPU acceleration for the detector (default: `false`)
 - `resources`: CPU and memory resource requests and limits
 
-**Example: Run all detectors on CPU only (no GPUs required for detectors)**
+**Example: Enable GPU for HAP detector (requires additional GPU)**
 ```bash
 helm install lemonade-stand-assistant ./chart --namespace ${PROJECT} \
-  --set detectors.hap.useGpu=false \
-  --set detectors.promptInjection.useGpu=false \
-  --set detectors.language.useGpu=false
+  --set detectors.hap.useGpu=true
 ```
 
-**Example: Run only HAP detector with GPU, others on CPU**
+**Example: Enable GPU for all detectors (requires 4 total GPUs)**
 ```bash
 helm install lemonade-stand-assistant ./chart --namespace ${PROJECT} \
   --set detectors.hap.useGpu=true \
-  --set detectors.promptInjection.useGpu=false \
-  --set detectors.language.useGpu=false
+  --set detectors.promptInjection.useGpu=true \
+  --set detectors.language.useGpu=true
 ```
 
-**Example: Custom resource allocation for CPU-only HAP detector**
+**Example: Custom resource allocation for HAP detector**
 ```bash
 helm install lemonade-stand-assistant ./chart --namespace ${PROJECT} \
-  --set detectors.hap.useGpu=false \
   --set detectors.hap.resources.requests.memory=2Gi \
   --set detectors.hap.resources.limits.memory=4Gi
 ```
-
-#### Available Detectors
-
-The following detectors are always deployed and can be configured in `values.yaml` under the `detectors` section:
-
-- **hap**: IBM HAP Detector (Granite Guardian) - Monitors for hate, abuse, and profanity
-- **promptInjection**: Prompt Injection Detector (DeBERTa v3) - Identifies prompt injection attempts
-- **language**: Language Detector (XLM-RoBERTa) - Validates language compliance (English only)
 
 ### Validating the deployment
 
@@ -207,20 +194,19 @@ The Lemonade Stand Assistant consists of the following components:
 All models are deployed as KServe InferenceServices on OpenShift AI using:
 - vLLM runtime for the main LLM (optimized inference)
 - Guardrails Detector runtime for all detector models
-- Raw deployment mode for better control and observability
 
 ## Tags
 
-<!-- CONTRIBUTOR TODO: add metadata and tags for publication
+**Title:** Lemonade Stand Assistant
 
-TAG requirements: 
-	* Title: max char: 64, describes quickstart (match H1 heading) 
-	* Description: max char: 160, match SHORT DESCRIPTION above
-	* Industry: target industry, ie. Healthcare OR Financial Services
-	* Product: list primary product, ie. OpenShift AI OR OpenShift OR RHEL 
-	* Use case: use case descriptor, ie. security, automation, 
-	* Contributor org: defaults to Red Hat unless partner or community
-	
-Additional MIST tags, populated by web team.
+**Description:** AI-powered customer service assistant with guardrails for safe, compliant interactions using an LLM and multiple detector models.
 
--->
+**Industry:** Retail (but it can be applied any industry)
+
+**Product:** OpenShift AI, Trusty AI Guardrails Orchestrator feature
+
+**Use case:** AI safety, content moderation
+
+**Contributor org:** Red Hat
+
+

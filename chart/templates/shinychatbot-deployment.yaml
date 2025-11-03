@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: container
-          image: 'quay.io/sara_banderby/chatstuff:counter7'
+          image: 'quay.io/rh-ai-quickstart/lemonade-stand:0.0.1'
           ports:
             - containerPort: 8080
               protocol: TCP

@@ -1,12 +1,20 @@
-FROM docker.io/library/r-base:latest
+FROM rocker/shiny:4.4.2
 LABEL maintainer="abanderb@redhat.com"
 LABEL description="R runtime image for dashboard demo."
-LABEL version="2.0"
+LABEL version="4.1"
 USER root
-RUN apt-get update && apt-get install -y libssl-dev libgdal-dev libgeos-dev libproj-dev libtbb-dev libnetcdf-dev libtool automake
-RUN R -q -e 'install.packages(c("shiny","httr2","shinychat", "ellmer", "bslib"), repos = "https://cran.rstudio.com/")'
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl-dev \
+    libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+# Install R packages
+RUN install2.r --error --skipinstalled --ncpus -1 \
+    httr2 \
+    ellmer \
+    shinychat
 RUN mkdir /application /.cache /application/www
-RUN chmod 777 /.cache /application/www
+RUN chmod 775 /.cache /application/www
 COPY app.r /application
 WORKDIR /application
 USER 1001
