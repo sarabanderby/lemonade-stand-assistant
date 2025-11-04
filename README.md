@@ -8,7 +8,7 @@ This quickstart is based on the demo by Trusty AI team. It can be found [here](h
 
 Imagine we run a successful lemonade stand and want to deploy a customer service agent so our customers can learn more about our products. We'll want to make sure all conversations with the agent are family friendly, and that it does not promote our rival fruit juice vendors.
 
-This demo showcases how to deploy an AI-powered customer service assistant with multiple guardrails to ensure safe, compliant, and on-brand interactions. The solution uses Llama 3.2 as the base language model, protected by three detector models that monitor for harmful content, prompt injection attacks, and language compliance.
+This demo showcases how to deploy an AI-powered customer service assistant with multiple guardrails to ensure safe, compliant, and on-brand interactions. The solution uses [Llama 3.2](https://huggingface.co/RedHatAI/Llama-3.2-3B-Instruct-FP8-dynamic) as the base language model, protected by three detector models that monitor for harmful content, prompt injection attacks, and language compliance.
 
 **In this demo, we are following these assumptions of principles:** 
 
@@ -171,9 +171,9 @@ The Lemonade Stand Assistant consists of the following components:
 
 **Inference Services:**
 - **Llama 3.2 3B Instruct**: Main language model for generating responses
-- **IBM HAP Detector (Granite Guardian HAP 125M)**: Detects hate, abuse, and profanity
-- **Prompt Injection Detector (DeBERTa v3 Base)**: Identifies prompt injection attempts
-- **Language Detector (XLM-RoBERTa Base)**: Validates language compliance (English only)
+- **[IBM HAP Detector (Granite Guardian HAP 125M)](https://huggingface.co/ibm-granite/granite-guardian-hap-125m)**: Detects hate, abuse, and profanity
+- **[Prompt Injection Detector (DeBERTa v3 Base)](https://huggingface.co/protectai/deberta-v3-base-prompt-injection-v2)**: Identifies prompt injection attempts
+- **[Language Detector (XLM-RoBERTa Base)](https://huggingface.co/papluca/xlm-roberta-base-language-detection)**: Validates language compliance (English only)
 
 **Orchestration:**
 - **Guardrails Orchestrator**: Coordinates detector models using FMS Orchestr8
