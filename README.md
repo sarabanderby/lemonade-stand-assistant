@@ -80,7 +80,7 @@ The solution includes a Grafana dashboard for monitoring guardrail detections in
 
 ### Required user permissions
 
-Standard user. No elevated cluster permissions required.
+You need to have cluster admin privileges to create guardrails orchestrator object.
 
 ## Deploy
 
