@@ -48,7 +48,6 @@ spec:
               path: prompt
             name: system-prompt
           name: system-prompt
-
 ---
 kind: Service
 apiVersion: v1
