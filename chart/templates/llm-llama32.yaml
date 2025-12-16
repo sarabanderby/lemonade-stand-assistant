@@ -30,7 +30,7 @@ spec:
         - '--max-num-seqs'
         - '384'
         - '--max-num-batched-tokens'
-        - '12288
+        - '12288'
       env:
         - name: VLLM_CONFIG_ROOT
           value: /tmp
